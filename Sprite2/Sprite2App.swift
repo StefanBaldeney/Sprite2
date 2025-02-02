@@ -12,6 +12,10 @@ struct Sprite2App: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                
         }
+        .windowStyle(HiddenTitleBarWindowStyle())
+        
+        
     }
 }
