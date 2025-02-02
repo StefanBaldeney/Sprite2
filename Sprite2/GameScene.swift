@@ -222,10 +222,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         updateHighScore(currentScore: score)
         updateScoreLabel()
         
-        //let obstacle = SKShapeNode(circleOfRadius: 20) // Beispiel: Roter Kreis
-        //let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
         let obstacle = SKSpriteNode(imageNamed: "asteroid7")
-        // obstacle.fillColor = .red
         obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+80...frame.maxX-80), y: frame.maxY+80)
         
         // Physik-Körper hinzufügen, falls benötigt
@@ -239,7 +236,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         obstacles.append(obstacle) // Hindernis zum Array hinzufügen
         
         // Bewegung nach unten und Entfernen des Hindernisses
-        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 4.0)
+        let randomDuration = TimeInterval(CGFloat.random(in: 3.0...5.0))
+
+        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: randomDuration)
         let removeAction = SKAction.run {
             self.obstacles.removeAll { $0 == obstacle } // Entfernt das Hindernis aus dem Array
             obstacle.removeFromParent() // Entfernt das Hindernis aus der Szene
