@@ -8,12 +8,25 @@ import SpriteKit
 class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     var obstacles: [SKNode] = [] // Speichert alle aktiven Hindernisse
+
+    var lives: Int = 3
+    var score: Int = 0
+    var hiScore: Int = 0
     
     let player = SKSpriteNode(imageNamed: "AstroChase4") // Name der Bilddatei
     
     var pressedKeys = Set<UInt16>() // Speichert gedrückte Tasten
      
-    var lives = 3
+    let scoreLabel = SKLabelNode(text: "Score: 0")
+    let highScoreLabel = SKLabelNode(text: "Highscore: 0")
+    
+    func updateHighScore(currentScore: Int) {
+        if currentScore > hiScore {
+            hiScore = currentScore
+            print("Neuer Highscore: \(hiScore)")
+        }
+    }
+
     
     override func didMove(to view: SKView) {
         // Hintergrundfarbe setzen
@@ -61,9 +74,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         lives.fontName = "Helvetica-Bold" // Schriftart
         lives.fontSize = 16 // Schriftgröße
         lives.fontColor = .yellow // Schriftfarbe
-        lives.position = CGPoint(x: 60, y: self.size.height-50)
+        lives.position = CGPoint(x: 25, y: self.size.height-50)
         lives.zPosition = -5
+        lives.horizontalAlignmentMode = .left
+
         addChild(lives) // Textknoten zur Szene hinzufügen
+        
+        // HighScore
+        scoreLabel.fontName = "Helvetica-Bold"
+        scoreLabel.fontSize = 16
+        scoreLabel.horizontalAlignmentMode = .left
+        scoreLabel.fontColor = .gray
+        scoreLabel.position = CGPoint(x: 25, y: self.size.height-70) // Beispielposition
+        addChild(scoreLabel)
+        
+        // HighScore
+        highScoreLabel.fontName = "Helvetica-Bold"
+        highScoreLabel.fontSize = 16
+        highScoreLabel.horizontalAlignmentMode = .left
+        highScoreLabel.fontColor = .yellow
+        highScoreLabel.position = CGPoint(x: 25, y: self.size.height-90) // Beispielposition
+        addChild(highScoreLabel)
         
         // Textknoten erstellen
                 let label = SKLabelNode(text: "Erichs Game!")
@@ -99,6 +130,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
     }
 
+    func updateHighScoreLabel() {
+        highScoreLabel.text = "Highscore: \(hiScore)"
+    }
+    
     func didBegin(_ contact: SKPhysicsContact) {
             let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
             let bodyB = contact.bodyB.node // Zweites Objekt der Kollision
