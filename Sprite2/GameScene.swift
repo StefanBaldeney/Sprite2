@@ -8,6 +8,8 @@ import SpriteKit
 class GameScene: SKScene {
     
     let player = SKSpriteNode(color: .blue, size: CGSize(width: 40, height: 40))
+    
+    var pressedKeys = Set<UInt16>() // Speichert gedrückte Tasten
      
     override func didMove(to view: SKView) {
         // Hintergrundfarbe setzen
@@ -77,15 +79,21 @@ class GameScene: SKScene {
     }
 
     override func keyDown(with event: NSEvent) {
-        switch event.keyCode {
-        case 123: // Links-Pfeil
-            player.position.x -= 20
-        case 124: // Rechts-Pfeil
-            player.position.x += 20
-        default:
-            break
+            switch event.keyCode {
+            case 123: // Links-Pfeil
+                player.position.x -= 20
+                if player.position.x < 30 { // Verhindert das Überqueren der linken Wand
+                    player.position.x = 15
+                }
+            case 124: // Rechts-Pfeil
+                player.position.x += 20
+                if player.position.x > self.size.width - 30 { // Verhindert das Überqueren der rechten Wand
+                    player.position.x = self.size.width - 15
+                }
+            default:
+                break
+            }
         }
-    }
     
     func spawnObstacle() {
         let obstacle = SKShapeNode(circleOfRadius: 20)
