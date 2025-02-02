@@ -78,22 +78,47 @@ class GameScene: SKScene {
         
     }
 
+    override func keyUp(with event: NSEvent) {
+        pressedKeys.remove(event.keyCode) // Taste als losgelassen markieren
+    }
+    
     override func keyDown(with event: NSEvent) {
-            switch event.keyCode {
-            case 123: // Links-Pfeil
-                player.position.x -= 20
-                if player.position.x < 30 { // Verhindert das Überqueren der linken Wand
-                    player.position.x = 15
-                }
-            case 124: // Rechts-Pfeil
-                player.position.x += 20
-                if player.position.x > self.size.width - 30 { // Verhindert das Überqueren der rechten Wand
-                    player.position.x = self.size.width - 15
-                }
-            default:
-                break
-            }
+        
+        pressedKeys.insert(event.keyCode) // Taste als gedrückt markieren
+        
+//        switch event.keyCode {
+//            case 123: // Links-Pfeil
+//                player.position.x -= 20
+//                if player.position.x < 30 { // Verhindert das Überqueren der linken Wand
+//                    player.position.x = 15
+//                }
+//            case 124: // Rechts-Pfeil
+//                player.position.x += 20
+//                if player.position.x > self.size.width - 30 { // Verhindert das Überqueren der rechten Wand
+//                    player.position.x = self.size.width - 15
+//                }
+//            default:
+//                break
+//            }
         }
+    
+    override func update(_ currentTime: TimeInterval) {
+        let moveSpeed: CGFloat = 3.0
+           
+           if pressedKeys.contains(123) { // Links-Pfeil
+               player.position.x -= moveSpeed
+               if player.position.x < 40 { // Verhindert das Überqueren der linken Wand
+                   player.position.x = 40
+               }
+           }
+           if pressedKeys.contains(124) { // Rechts-Pfeil
+               player.position.x += moveSpeed
+               if player.position.x > self.size.width - 40 { // Verhindert das Überqueren der rechten Wand
+                   player.position.x = self.size.width - 40
+               }
+           }
+    }
+    
     
     func spawnObstacle() {
         let obstacle = SKShapeNode(circleOfRadius: 20)
