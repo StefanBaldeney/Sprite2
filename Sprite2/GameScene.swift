@@ -19,16 +19,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
      
     let scoreLabel = SKLabelNode(text: "Score: 0")
     let highScoreLabel = SKLabelNode(text: "Highscore: 0")
+    let livesLabel = SKLabelNode(text: "Lives: 3")
     
     func updateHighScore(currentScore: Int) {
         if currentScore > hiScore {
             hiScore = currentScore
-            print("Neuer Highscore: \(hiScore)")
+            UserDefaults.standard.set(hiScore, forKey: "HighScore")
+            updateHighScoreLabel()
         }
     }
-
     
     override func didMove(to view: SKView) {
+        
+        if let savedHighScore = UserDefaults.standard.value(forKey: "HighScore") as? Int {
+            hiScore = savedHighScore
+            updateHighScoreLabel()
+        }
+        
         // Hintergrundfarbe setzen
         self.backgroundColor = .black
         
@@ -70,17 +77,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                 addChild(rightWall)
         
         // Lives
-        let lives = SKLabelNode(text: "Leben: ")
-        lives.fontName = "Helvetica-Bold" // Schriftart
-        lives.fontSize = 16 // Schriftgröße
-        lives.fontColor = .yellow // Schriftfarbe
-        lives.position = CGPoint(x: 25, y: self.size.height-50)
-        lives.zPosition = -5
-        lives.horizontalAlignmentMode = .left
+        //let lives = SKLabelNode(text: "Leben: ")
+        livesLabel.fontName = "Helvetica-Bold" // Schriftart
+        livesLabel.fontSize = 16 // Schriftgröße
+        livesLabel.fontColor = .yellow // Schriftfarbe
+        livesLabel.position = CGPoint(x: 25, y: self.size.height-50)
+        livesLabel.zPosition = -5
+        livesLabel.horizontalAlignmentMode = .left
 
-        addChild(lives) // Textknoten zur Szene hinzufügen
+        addChild(livesLabel) // Textknoten zur Szene hinzufügen
         
-        // HighScore
+        // Score
         scoreLabel.fontName = "Helvetica-Bold"
         scoreLabel.fontSize = 16
         scoreLabel.horizontalAlignmentMode = .left
@@ -133,6 +140,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     func updateHighScoreLabel() {
         highScoreLabel.text = "Highscore: \(hiScore)"
     }
+
+    func updateScoreLabel() {
+        scoreLabel.text = "Score: \(score)"
+    }
+    
+    func updateLivesLabel() {
+        livesLabel.text = "Leben: \(lives)"
+    }
+
     
     func didBegin(_ contact: SKPhysicsContact) {
             let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
@@ -140,13 +156,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
 
             if let playerNode = bodyA as? SKSpriteNode, let obstacleNode = bodyB as? SKSpriteNode {
                 print("Kollision zwischen Spieler und Hindernis erkannt!")
+                
                 handleCollision(player: playerNode, obstacle: obstacleNode)
             }
         }
 
         func handleCollision(player: SKSpriteNode, obstacle: SKSpriteNode) {
             // Logik für die Kollision (z. B. Spiel beenden oder Punkt abziehen)
-            print("Spieler hat ein Hindernis getroffen!")
+            
+            obstacle.removeFromParent()
+            
+            lives -= 1
+            
+            updateLivesLabel()
+            
+            if lives <= 0 {
+                        gameOver()
+            }
+
+        }
+
+    func gameOver() {
+            print("Spiel beendet!")
+            
+            // Zeige eine Nachricht an oder starte die Szene neu
+            let gameOverLabel = SKLabelNode(text: "Game Over")
+            gameOverLabel.fontName = "Helvetica-Bold"
+            gameOverLabel.fontSize = 48
+            gameOverLabel.fontColor = .red
+            gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+            addChild(gameOverLabel)
+            
+            // Stoppe alle Aktionen in der Szene
+            self.isPaused = true
         }
     
     override func keyUp(with event: NSEvent) {
@@ -174,24 +216,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
            }
     }
     
-    
-//    func spawnObstacle() {
-//
-//        let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
-//        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+60...frame.maxX-60), y: frame.maxY)
-//        obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size) // Rechteckiger Physik-Körper
-//        obstacle.physicsBody?.categoryBitMask = 2 // Kategorie des Hindernisses
-//        obstacle.physicsBody?.contactTestBitMask = 1 // Testet Kontakt mit dem Spieler
-//        obstacle.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
-//        obstacle.physicsBody?.isDynamic = false // Hindernis bleibt statisch
-//        addChild(obstacle)
-//        
-//        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 3.0)
-//        let removeAction = SKAction.removeFromParent()
-//        obstacle.run(SKAction.sequence([moveAction, removeAction]))
-//    }
-    
     func spawnObstacle() {
+        
+        score += 10
+        updateHighScore(currentScore: score)
+        updateScoreLabel()
+        
         //let obstacle = SKShapeNode(circleOfRadius: 20) // Beispiel: Roter Kreis
         //let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
         let obstacle = SKSpriteNode(imageNamed: "asteroid7")
