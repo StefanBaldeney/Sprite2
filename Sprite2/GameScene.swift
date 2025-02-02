@@ -5,18 +5,30 @@
 
 import SpriteKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate  {
     
-    let player = SKSpriteNode(color: .blue, size: CGSize(width: 40, height: 40))
+    var obstacles: [SKNode] = [] // Speichert alle aktiven Hindernisse
+    
+    let player = SKSpriteNode(imageNamed: "AstroChase4") // Name der Bilddatei
     
     var pressedKeys = Set<UInt16>() // Speichert gedrückte Tasten
      
+    var lives = 3
+    
     override func didMove(to view: SKView) {
         // Hintergrundfarbe setzen
         self.backgroundColor = .black
         
+        physicsWorld.contactDelegate = self // Kontaktdelegat setzen
+        
         // Beispiel: Spieler hinzufügen
         player.position = CGPoint(x: self.size.width / 2, y: self.size.height / 4)
+        player.physicsBody = SKPhysicsBody(rectangleOf: player.size) // Rechteckiger Physik-Körper
+        player.physicsBody?.usesPreciseCollisionDetection = true
+        player.physicsBody?.categoryBitMask = 1 // Kategorie des Spielers
+        player.physicsBody?.contactTestBitMask = 2 // Testet Kontakt mit Hindernissen
+        player.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
+        player.physicsBody?.affectedByGravity = false // Keine Schwerkraft
         addChild(player)
         
         if let starField = SKEmitterNode(fileNamed: "MyParticle") {
@@ -43,6 +55,15 @@ class GameScene: SKScene {
                 rightWall.physicsBody?.isDynamic = false // Wand bleibt statisch
                 rightWall.physicsBody?.categoryBitMask = 2
                 addChild(rightWall)
+        
+        // Lives
+        let lives = SKLabelNode(text: "Leben: ")
+        lives.fontName = "Helvetica-Bold" // Schriftart
+        lives.fontSize = 16 // Schriftgröße
+        lives.fontColor = .yellow // Schriftfarbe
+        lives.position = CGPoint(x: 60, y: self.size.height-50)
+        lives.zPosition = -5
+        addChild(lives) // Textknoten zur Szene hinzufügen
         
         // Textknoten erstellen
                 let label = SKLabelNode(text: "Erichs Game!")
@@ -78,29 +99,28 @@ class GameScene: SKScene {
         
     }
 
+    func didBegin(_ contact: SKPhysicsContact) {
+            let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
+            let bodyB = contact.bodyB.node // Zweites Objekt der Kollision
+
+            if let playerNode = bodyA as? SKSpriteNode, let obstacleNode = bodyB as? SKSpriteNode {
+                print("Kollision zwischen Spieler und Hindernis erkannt!")
+                handleCollision(player: playerNode, obstacle: obstacleNode)
+            }
+        }
+
+        func handleCollision(player: SKSpriteNode, obstacle: SKSpriteNode) {
+            // Logik für die Kollision (z. B. Spiel beenden oder Punkt abziehen)
+            print("Spieler hat ein Hindernis getroffen!")
+        }
+    
     override func keyUp(with event: NSEvent) {
         pressedKeys.remove(event.keyCode) // Taste als losgelassen markieren
     }
     
     override func keyDown(with event: NSEvent) {
-        
         pressedKeys.insert(event.keyCode) // Taste als gedrückt markieren
-        
-//        switch event.keyCode {
-//            case 123: // Links-Pfeil
-//                player.position.x -= 20
-//                if player.position.x < 30 { // Verhindert das Überqueren der linken Wand
-//                    player.position.x = 15
-//                }
-//            case 124: // Rechts-Pfeil
-//                player.position.x += 20
-//                if player.position.x > self.size.width - 30 { // Verhindert das Überqueren der rechten Wand
-//                    player.position.x = self.size.width - 15
-//                }
-//            default:
-//                break
-//            }
-        }
+    }
     
     override func update(_ currentTime: TimeInterval) {
         let moveSpeed: CGFloat = 3.0
@@ -121,13 +141,17 @@ class GameScene: SKScene {
     
     
     func spawnObstacle() {
-        let obstacle = SKShapeNode(circleOfRadius: 20)
-        obstacle.fillColor = .red
-        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX...frame.maxX), y: frame.maxY)
-        
+
+        let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
+        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+60...frame.maxX-60), y: frame.maxY)
+        obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size) // Rechteckiger Physik-Körper
+        obstacle.physicsBody?.categoryBitMask = 2 // Kategorie des Hindernisses
+        obstacle.physicsBody?.contactTestBitMask = 1 // Testet Kontakt mit dem Spieler
+        obstacle.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
+        obstacle.physicsBody?.isDynamic = false // Hindernis bleibt statisch
         addChild(obstacle)
         
-        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 4.0)
+        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 3.0)
         let removeAction = SKAction.removeFromParent()
         obstacle.run(SKAction.sequence([moveAction, removeAction]))
     }
