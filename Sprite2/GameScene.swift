@@ -93,7 +93,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         run(SKAction.repeatForever(
             SKAction.sequence([
                 SKAction.run(spawnObstacle),
-                SKAction.wait(forDuration: 2.0)
+                SKAction.wait(forDuration: 0.3)
             ])
         ))
         
@@ -140,20 +140,49 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
     
     
+//    func spawnObstacle() {
+//
+//        let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
+//        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+60...frame.maxX-60), y: frame.maxY)
+//        obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size) // Rechteckiger Physik-Körper
+//        obstacle.physicsBody?.categoryBitMask = 2 // Kategorie des Hindernisses
+//        obstacle.physicsBody?.contactTestBitMask = 1 // Testet Kontakt mit dem Spieler
+//        obstacle.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
+//        obstacle.physicsBody?.isDynamic = false // Hindernis bleibt statisch
+//        addChild(obstacle)
+//        
+//        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 3.0)
+//        let removeAction = SKAction.removeFromParent()
+//        obstacle.run(SKAction.sequence([moveAction, removeAction]))
+//    }
+    
     func spawnObstacle() {
-
-        let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
-        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+60...frame.maxX-60), y: frame.maxY)
-        obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size) // Rechteckiger Physik-Körper
-        obstacle.physicsBody?.categoryBitMask = 2 // Kategorie des Hindernisses
-        obstacle.physicsBody?.contactTestBitMask = 1 // Testet Kontakt mit dem Spieler
-        obstacle.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
-        obstacle.physicsBody?.isDynamic = false // Hindernis bleibt statisch
-        addChild(obstacle)
+        //let obstacle = SKShapeNode(circleOfRadius: 20) // Beispiel: Roter Kreis
+        //let obstacle = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 40))
+        let obstacle = SKSpriteNode(imageNamed: "asteroid7")
+        // obstacle.fillColor = .red
+        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+80...frame.maxX-80), y: frame.maxY+80)
         
-        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 3.0)
-        let removeAction = SKAction.removeFromParent()
+        // Physik-Körper hinzufügen, falls benötigt
+        obstacle.physicsBody = SKPhysicsBody(circleOfRadius: 20)
+        obstacle.physicsBody?.isDynamic = false // true?
+        obstacle.physicsBody?.categoryBitMask = 2
+        obstacle.physicsBody?.contactTestBitMask = 1
+        obstacle.physicsBody?.collisionBitMask = 0
+        
+        addChild(obstacle) // Hindernis zur Szene hinzufügen
+        obstacles.append(obstacle) // Hindernis zum Array hinzufügen
+        
+        // Bewegung nach unten und Entfernen des Hindernisses
+        let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: 4.0)
+        let removeAction = SKAction.run {
+            self.obstacles.removeAll { $0 == obstacle } // Entfernt das Hindernis aus dem Array
+            obstacle.removeFromParent() // Entfernt das Hindernis aus der Szene
+            print("Hindernis entfernt. Aktive Hindernisse: \(self.obstacles.count)")
+        }
         obstacle.run(SKAction.sequence([moveAction, removeAction]))
+        
+        print("Hindernis erzeugt. Aktive Hindernisse: \(obstacles.count)")
     }
     
 }
