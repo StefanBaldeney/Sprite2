@@ -1,4 +1,3 @@
-//
 //  GameScene.swift
 //  Sprite2
 //  Created by Stefan Brandt on 02.02.25.
@@ -13,7 +12,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     var score: Int = 0
     var hiScore: Int = 0
     
-    let player = SKSpriteNode(imageNamed: "AstroChase4") // Name der Bilddatei
+    let player = SKSpriteNode(imageNamed: "ship2") // Name der Bilddatei
     
     var pressedKeys = Set<UInt16>() // Speichert gedrückte Tasten
      
@@ -42,6 +41,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         physicsWorld.contactDelegate = self // Kontaktdelegat setzen
         
         // Beispiel: Spieler hinzufügen
+        player.size = CGSize(width: 40, height: 80)
         player.position = CGPoint(x: self.size.width / 2, y: self.size.height / 4)
         player.physicsBody = SKPhysicsBody(rectangleOf: player.size) // Rechteckiger Physik-Körper
         player.physicsBody?.usesPreciseCollisionDetection = true
