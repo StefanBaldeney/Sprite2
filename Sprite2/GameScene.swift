@@ -1,6 +1,7 @@
 //  GameScene.swift
 //  Sprite2
 //  Created by Stefan Brandt on 02.02.25.
+//  notes: xattr -c /Users/StefanBrandt/Downloads/ship2.png
 
 import SpriteKit
 
@@ -11,6 +12,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     var lives: Int = 3
     var score: Int = 0
     var hiScore: Int = 0
+    var level: Int = 1
+    var obstacleSpeed: Double = 4
     
     let player = SKSpriteNode(imageNamed: "ship2") // Name der Bilddatei
     
@@ -19,6 +22,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     let scoreLabel = SKLabelNode(text: "Score: 0")
     let highScoreLabel = SKLabelNode(text: "Highscore: 0")
     let livesLabel = SKLabelNode(text: "Lives: 3")
+    let levelLabel = SKLabelNode(text: "Level: 1")
     
     func updateHighScore(currentScore: Int) {
         if currentScore > hiScore {
@@ -26,6 +30,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             UserDefaults.standard.set(hiScore, forKey: "HighScore")
             updateHighScoreLabel()
         }
+    }
+    
+    func levelUp() {
+        level += 1
+        obstacleSpeed *= 0.8
+        updateLevelLabel()
+                        
+        // Erhöhe die Größe des Sprites proportional zum Level
+        // let newSize = CGSize(width: sprite.size.width * 1.2, height: sprite.size.height * 1.2)
+        // let resizeAction = SKAction.resize(toWidth: newSize.width, height: newSize.height, duration: 0.5)
+        // sprite.run(resizeAction)
     }
     
     override func didMove(to view: SKView) {
@@ -76,12 +91,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                 rightWall.physicsBody?.categoryBitMask = 2
                 addChild(rightWall)
         
+        // Level
+        levelLabel.fontName = "Helvetica-Bold" // Schriftart
+        levelLabel.fontSize = 16 // Schriftgröße
+        levelLabel.fontColor = .yellow // Schriftfarbe
+        levelLabel.position = CGPoint(x: 25, y: self.size.height-35)
+        levelLabel.zPosition = -5
+        levelLabel.horizontalAlignmentMode = .left
+        addChild(levelLabel)
         // Lives
         //let lives = SKLabelNode(text: "Leben: ")
         livesLabel.fontName = "Helvetica-Bold" // Schriftart
         livesLabel.fontSize = 16 // Schriftgröße
         livesLabel.fontColor = .yellow // Schriftfarbe
-        livesLabel.position = CGPoint(x: 25, y: self.size.height-50)
+        livesLabel.position = CGPoint(x: 25, y: self.size.height-55)
         livesLabel.zPosition = -5
         livesLabel.horizontalAlignmentMode = .left
 
@@ -92,7 +115,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         scoreLabel.fontSize = 16
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.fontColor = .gray
-        scoreLabel.position = CGPoint(x: 25, y: self.size.height-70) // Beispielposition
+        scoreLabel.position = CGPoint(x: 25, y: self.size.height-75) // Beispielposition
         addChild(scoreLabel)
         
         // HighScore
@@ -100,7 +123,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         highScoreLabel.fontSize = 16
         highScoreLabel.horizontalAlignmentMode = .left
         highScoreLabel.fontColor = .yellow
-        highScoreLabel.position = CGPoint(x: 25, y: self.size.height-90) // Beispielposition
+        highScoreLabel.position = CGPoint(x: 25, y: self.size.height-95) // Beispielposition
         addChild(highScoreLabel)
         
         // Textknoten erstellen
@@ -137,6 +160,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
     }
 
+    func updateLevelLabel() {
+        levelLabel.text = "Level: \(level)"
+    }
+    
     func updateHighScoreLabel() {
         highScoreLabel.text = "Highscore: \(hiScore)"
     }
@@ -215,12 +242,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                }
            }
     }
-    
+
+    func checkForLevelUp() {
+        if score % 1000 == 0 { // Überprüft, ob der Punktestand ein Vielfaches von 1000 ist
+            levelUp()
+        }
+    }
+   
     func spawnObstacle() {
         
         score += 10
         updateHighScore(currentScore: score)
         updateScoreLabel()
+
+        checkForLevelUp()
         
         let obstacle = SKSpriteNode(imageNamed: "asteroid7")
         obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+80...frame.maxX-80), y: frame.maxY+80)
@@ -236,8 +271,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         obstacles.append(obstacle) // Hindernis zum Array hinzufügen
         
         // Bewegung nach unten und Entfernen des Hindernisses
-        let randomDuration = TimeInterval(CGFloat.random(in: 3.0...5.0))
-
+        // let randomDuration = TimeInterval(CGFloat.random(in: 3.0...5.0))
+        let randomDuration = TimeInterval(CGFloat.random(in: obstacleSpeed...obstacleSpeed*2))
+        
         let moveAction = SKAction.moveTo(y: frame.minY - 50, duration: randomDuration)
         let removeAction = SKAction.run {
             self.obstacles.removeAll { $0 == obstacle } // Entfernt das Hindernis aus dem Array
