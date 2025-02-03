@@ -37,12 +37,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     func levelUp() {
         level += 1
-        lives += 1
-        obstacleSpeed *= 0.8
-        
-        if obstacleSpeed < 1 {obstacleSpeed = 1}
-        
         updateLevelLabel()
+        
+        if level == 2
+        {
+            if let scene = GameScene(fileNamed: "GameScene") {
+                // Szene skalieren, um die Bildschirmgröße zu nutzen
+                scene.scaleMode = .aspectFill
+
+                // Szene dem SKView hinzufügen
+                if let view = self.view as? SKView {
+                    view.presentScene(scene)
+                    view.ignoresSiblingOrder = true
+                    view.showsFPS = true
+                    view.showsNodeCount = true
+                }
+            }
+
+        }
+        else{
+            lives += 1
+            obstacleSpeed *= 0.8
+            
+            if obstacleSpeed < 1 {obstacleSpeed = 1}
+           
+        }
                         
         // Erhöhe die Größe des Sprites proportional zum Level
         // let newSize = CGSize(width: sprite.size.width * 1.2, height: sprite.size.height * 1.2)
@@ -59,7 +78,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
         if let musicURL = Bundle.main.url(forResource: "Flightmare", withExtension: "mp3") {
                     backgroundMusic = SKAudioNode(url: musicURL)
-                    addChild(backgroundMusic!) // Musik zur Szene hinzufügen
+                    // addChild(backgroundMusic!) // Musik zur Szene hinzufügen
         }
                 
         self.backgroundColor = .black
@@ -221,7 +240,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
 
     func gameOver() {
             print("Spiel beendet!")
-            
+                                
             // Zeige eine Nachricht an oder starte die Szene neu
             let gameOverLabel = SKLabelNode(text: "Game Over")
             gameOverLabel.fontName = "Helvetica-Bold"
