@@ -37,6 +37,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     func levelUp() {
         level += 1
+        lives += 1
         obstacleSpeed *= 0.8
         
         if obstacleSpeed < 1 {obstacleSpeed = 1}
@@ -60,8 +61,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                     backgroundMusic = SKAudioNode(url: musicURL)
                     addChild(backgroundMusic!) // Musik zur Szene hinzufügen
         }
-        
-        // Hintergrundfarbe setzen
+                
         self.backgroundColor = .black
         
         physicsWorld.contactDelegate = self // Kontaktdelegat setzen
