@@ -15,8 +15,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     var level: Int = 1
     var obstacleSpeed: Double = 4
     
-    let player = SKSpriteNode(imageNamed: "ship2") // Name der Bilddatei
+    var backgroundMusic: SKAudioNode?
     
+    let player = SKSpriteNode(imageNamed: "ship8") //
+    let boost = SKSpriteNode(imageNamed: "Boost8") // Boost ohne Kollisionserkennung
+        
     var pressedKeys = Set<UInt16>() // Speichert gedrückte Tasten
      
     let scoreLabel = SKLabelNode(text: "Score: 0")
@@ -35,6 +38,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     func levelUp() {
         level += 1
         obstacleSpeed *= 0.8
+        
+        if obstacleSpeed < 1 {obstacleSpeed = 1}
+        
         updateLevelLabel()
                         
         // Erhöhe die Größe des Sprites proportional zum Level
@@ -48,6 +54,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         if let savedHighScore = UserDefaults.standard.value(forKey: "HighScore") as? Int {
             hiScore = savedHighScore
             updateHighScoreLabel()
+        }
+        
+        if let musicURL = Bundle.main.url(forResource: "Flightmare", withExtension: "mp3") {
+                    backgroundMusic = SKAudioNode(url: musicURL)
+                    addChild(backgroundMusic!) // Musik zur Szene hinzufügen
         }
         
         // Hintergrundfarbe setzen
@@ -65,6 +76,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         player.physicsBody?.collisionBitMask = 0 // Keine physikalische Kollision
         player.physicsBody?.affectedByGravity = false // Keine Schwerkraft
         addChild(player)
+        
+        // Boost
+        boost.size = CGSize(width: 10, height: 20)
+        boost.position = CGPoint(x: player.position.x, y: player.position.y-40 )
+        addChild(boost)
         
         if let starField = SKEmitterNode(fileNamed: "MyParticle") {
             starField.position = CGPoint(x: self.size.width / 2, y: self.size.height)
@@ -241,10 +257,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                    player.position.x = self.size.width - 40
                }
            }
+        
+        boost.position.x = player.position.x
+        
     }
 
     func checkForLevelUp() {
-        if score % 1000 == 0 { // Überprüft, ob der Punktestand ein Vielfaches von 1000 ist
+        if score % 500 == 0 { // Überprüft, ob der Punktestand ein Vielfaches von 1000 ist
             levelUp()
         }
     }
@@ -254,11 +273,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         score += 10
         updateHighScore(currentScore: score)
         updateScoreLabel()
-
         checkForLevelUp()
         
-        let obstacle = SKSpriteNode(imageNamed: "asteroid7")
-        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+80...frame.maxX-80), y: frame.maxY+80)
+        let obstacle = SKSpriteNode(imageNamed: "asteroid8")
+        obstacle.position = CGPoint(x: CGFloat.random(in: frame.minX+75...frame.maxX-75), y: frame.maxY+80)
         
         // Physik-Körper hinzufügen, falls benötigt
         obstacle.physicsBody = SKPhysicsBody(circleOfRadius: 20)
@@ -284,7 +302,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
         print("Hindernis erzeugt. Aktive Hindernisse: \(obstacles.count)")
     }
-    
 }
 
 
