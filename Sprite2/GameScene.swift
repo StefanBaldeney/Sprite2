@@ -62,40 +62,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         }
     }
     
-    func levelUp() {
-        level += 1
-        updateLevelLabel()
-        
-        if level == 2
-        {
-            if let scene = GameScene(fileNamed: "GameScene") {
-                // Szene skalieren, um die Bildschirmgröße zu nutzen
-                scene.scaleMode = .aspectFill
-
-                // Szene dem SKView hinzufügen
-                if let view = self.view as? SKView {
-                    view.presentScene(scene)
-                    view.ignoresSiblingOrder = true
-                    view.showsFPS = true
-                    view.showsNodeCount = true
-                }
-            }
-
-        }
-        else{
-            lives += 1
-            obstacleSpeed *= 0.8
-            
-            if obstacleSpeed < 1 {obstacleSpeed = 1}
-           
-        }
-                        
-        // Erhöhe die Größe des Sprites proportional zum Level
-        // let newSize = CGSize(width: sprite.size.width * 1.2, height: sprite.size.height * 1.2)
-        // let resizeAction = SKAction.resize(toWidth: newSize.width, height: newSize.height, duration: 0.5)
-        // sprite.run(resizeAction)
-    }
-    
     override func didMove(to view: SKView) {
         
         if let savedHighScore = UserDefaults.standard.value(forKey: "HighScore") as? Int {
@@ -368,9 +334,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
 
     func checkForLevelUp() {
-        if score % 500 == 0 { // Überprüft, ob der Punktestand ein Vielfaches von 1000 ist
-            levelUp()
-        }
+       
     }
    
     func spawnObstacle() {
