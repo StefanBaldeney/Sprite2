@@ -5,6 +5,13 @@
 
 import SpriteKit
 
+struct PhysicsCategory {
+    static let none: UInt32 = 0
+    static let spaceship: UInt32 = 0b1       // 1
+    static let projectile: UInt32 = 0b10    // 2
+    static let obstacle: UInt32 = 0b100     // 4
+}
+
 class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     var obstacles: [SKNode] = [] // Speichert alle aktiven Hindernisse
@@ -26,6 +33,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     let highScoreLabel = SKLabelNode(text: "Highscore: 0")
     let livesLabel = SKLabelNode(text: "Lives: 3")
     let levelLabel = SKLabelNode(text: "Level: 1")
+    
+    func fireProjectile() {
+        let projectile = SKSpriteNode(color: .yellow, size: CGSize(width: 5, height: 20))
+        projectile.position = CGPoint(x: player.position.x, y: player.position.y + player.size.height / 2 + 25)
+         
+        // Physik-Körper für das Geschoss
+        projectile.physicsBody = SKPhysicsBody(rectangleOf: projectile.size)
+        projectile.physicsBody?.isDynamic = true
+        projectile.physicsBody?.categoryBitMask = PhysicsCategory.projectile
+        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
+        projectile.physicsBody?.collisionBitMask = PhysicsCategory.none
+        
+        addChild(projectile)
+
+        // Bewegung nach oben und Entfernen außerhalb des Bildschirms
+        let moveUp = SKAction.moveBy(x: 0, y: size.height, duration: 1.0)
+        let remove = SKAction.removeFromParent()
+        projectile.run(SKAction.sequence([moveUp, remove]))
+    }
+
     
     func updateHighScore(currentScore: Int) {
         if currentScore > hiScore {
@@ -83,6 +110,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                 
         self.backgroundColor = .black
         
+        
+        physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self // Kontaktdelegat setzen
         
         // Beispiel: Spieler hinzufügen
@@ -213,15 +242,66 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
 
     
     func didBegin(_ contact: SKPhysicsContact) {
-            let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
-            let bodyB = contact.bodyB.node // Zweites Objekt der Kollision
+        //let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
+        //let bodyB = contact.bodyB.node // Zweites Objekt der Kollision
+        
+        let firstBody: SKPhysicsBody
+        let secondBody: SKPhysicsBody
+        
+        // Sortieren der Körper (damit Reihenfolge irrelevant ist)
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        
+        print("firstBody")
+        print(firstBody.categoryBitMask)
 
-            if let playerNode = bodyA as? SKSpriteNode, let obstacleNode = bodyB as? SKSpriteNode {
-                print("Kollision zwischen Spieler und Hindernis erkannt!")
+        print("")
+        print("secondBody")
+        print(secondBody.categoryBitMask)
+
+        
+        // Prüfen, ob das Geschoss ein Hindernis getroffen hat
+        if firstBody.categoryBitMask == PhysicsCategory.projectile && secondBody.categoryBitMask == PhysicsCategory.obstacle {
+            
+            if let obstacleNode = secondBody.node as? SKSpriteNode,
+               let projectileNode = firstBody.node as? SKSpriteNode {
+                // Hindernis und Geschoss entfernen
+                obstacleNode.removeFromParent()
+                projectileNode.removeFromParent()
                 
-                handleCollision(player: playerNode, obstacle: obstacleNode)
+                print("Geschoss trifft Obstacle!")
             }
         }
+        
+        if firstBody.categoryBitMask == PhysicsCategory.spaceship && secondBody.categoryBitMask == PhysicsCategory.obstacle {
+            
+            if let obstacleNode = secondBody.node as? SKSpriteNode,
+               let spaceShip = firstBody.node as? SKSpriteNode {
+                // Hindernis und Geschoss entfernen
+                
+                handleCollision(player: spaceShip, obstacle: obstacleNode)
+                obstacleNode.removeFromParent()
+                print("SpaceShip trifft Obstacle!")
+            }
+        }
+        
+    }
+        //else
+        //{
+            // handleCollision(player: firstBody, obstacle: seconBody)
+        
+        
+//            if let playerNode = bodyA as? SKSpriteNode, let obstacleNode = bodyB as? SKSpriteNode {
+//                print("Kollision zwischen Spieler und Hindernis erkannt!")
+//                
+//                handleCollision(player: playerNode, obstacle: obstacleNode)
+//            }
+        //}
 
         func handleCollision(player: SKSpriteNode, obstacle: SKSpriteNode) {
             // Logik für die Kollision (z. B. Spiel beenden oder Punkt abziehen)
@@ -258,12 +338,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
     
     override func keyDown(with event: NSEvent) {
+        
+        if event.keyCode == 49 { // Keycode für Leertaste
+            fireProjectile()
+            return
+        }
+        
         pressedKeys.insert(event.keyCode) // Taste als gedrückt markieren
     }
     
     override func update(_ currentTime: TimeInterval) {
         let moveSpeed: CGFloat = 3.0
-           
+                
            if pressedKeys.contains(123) { // Links-Pfeil
                player.position.x -= moveSpeed
                if player.position.x < 40 { // Verhindert das Überqueren der linken Wand
@@ -300,8 +386,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         // Physik-Körper hinzufügen, falls benötigt
         obstacle.physicsBody = SKPhysicsBody(circleOfRadius: 20)
         obstacle.physicsBody?.isDynamic = false // true?
-        obstacle.physicsBody?.categoryBitMask = 2
-        obstacle.physicsBody?.contactTestBitMask = 1
+        obstacle.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+        obstacle.physicsBody?.contactTestBitMask = PhysicsCategory.projectile + PhysicsCategory.spaceship
         obstacle.physicsBody?.collisionBitMask = 0
         
         addChild(obstacle) // Hindernis zur Szene hinzufügen
@@ -315,11 +401,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         let removeAction = SKAction.run {
             self.obstacles.removeAll { $0 == obstacle } // Entfernt das Hindernis aus dem Array
             obstacle.removeFromParent() // Entfernt das Hindernis aus der Szene
-            print("Hindernis entfernt. Aktive Hindernisse: \(self.obstacles.count)")
+            //print("Hindernis entfernt. Aktive Hindernisse: \(self.obstacles.count)")
         }
         obstacle.run(SKAction.sequence([moveAction, removeAction]))
-        
-        print("Hindernis erzeugt. Aktive Hindernisse: \(obstacles.count)")
+        //print("Hindernis erzeugt. Aktive Hindernisse: \(obstacles.count)")
     }
 }
 
