@@ -71,7 +71,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
         if let musicURL = Bundle.main.url(forResource: "Flightmare", withExtension: "mp3") {
                     backgroundMusic = SKAudioNode(url: musicURL)
-                    // addChild(backgroundMusic!) // Musik zur Szene hinzufügen
+                    addChild(backgroundMusic!) // Musik zur Szene hinzufügen
         }
                 
         self.backgroundColor = .black
@@ -208,9 +208,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
 
     
     func didBegin(_ contact: SKPhysicsContact) {
-        //let bodyA = contact.bodyA.node // Erstes Objekt der Kollision
-        //let bodyB = contact.bodyB.node // Zweites Objekt der Kollision
-        
         let firstBody: SKPhysicsBody
         let secondBody: SKPhysicsBody
         
@@ -222,14 +219,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             firstBody = contact.bodyB
             secondBody = contact.bodyA
         }
-        
-        print("firstBody")
-        print(firstBody.categoryBitMask)
-
-        print("")
-        print("secondBody")
-        print(secondBody.categoryBitMask)
-
         
         // Prüfen, ob das Geschoss ein Hindernis getroffen hat
         if firstBody.categoryBitMask == PhysicsCategory.projectile && secondBody.categoryBitMask == PhysicsCategory.obstacle {
@@ -249,25 +238,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             if let obstacleNode = secondBody.node as? SKSpriteNode,
                let spaceShip = firstBody.node as? SKSpriteNode {
                 // Hindernis und Geschoss entfernen
-                
                 handleCollision(player: spaceShip, obstacle: obstacleNode)
                 obstacleNode.removeFromParent()
                 print("SpaceShip trifft Obstacle!")
             }
         }
-        
     }
-        //else
-        //{
-            // handleCollision(player: firstBody, obstacle: seconBody)
-        
-        
-//            if let playerNode = bodyA as? SKSpriteNode, let obstacleNode = bodyB as? SKSpriteNode {
-//                print("Kollision zwischen Spieler und Hindernis erkannt!")
-//                
-//                handleCollision(player: playerNode, obstacle: obstacleNode)
-//            }
-        //}
 
         func handleCollision(player: SKSpriteNode, obstacle: SKSpriteNode) {
             // Logik für die Kollision (z. B. Spiel beenden oder Punkt abziehen)
